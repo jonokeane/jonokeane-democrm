@@ -1,0 +1,428 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#11151A">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Warped">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>Warped Planner</title>
+<style>
+:root{
+  /* Layout: ink header band, sticky day/view bar, then one column of set rows on a cool grey sheet.
+     Must-sees are highlighter-yellow rows, maybes get a ring badge, the rest recede.
+     Nine stage hues run through the stage chips and the header stripe. */
+  --bg:#E4E8EC; --surface:#FFFFFF; --fg:#11151A; --muted:#566170; --line:#C9D0D8;
+  --bar:#11151A; --bar-fg:#F3F5F7; --bar-muted:#A3AEBA; --bar-line:#3A4450;
+  --must:#FFE23D; --must-bg:#FFF2A0; --mk-bg:#11151A; --mk-fg:#FFE23D;
+  --now:#E0143C; --on-now:#FFFFFF;
+  --ok:#157A3A; --on-ok:#FFFFFF;
+  --warn-bg:#FFB41F; --warn-fg:#1B1300; --warn-text:#9A4A00;
+  --font-display:"Big Shoulders Display","Avenir Next Condensed","Arial Narrow",Impact,sans-serif;
+  --font-body:"Barlow Semi Condensed","Avenir Next Condensed","Arial Narrow",system-ui,sans-serif;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0B0E11; --surface:#151A20; --fg:#EDF0F3; --muted:#97A3B0; --line:#29313A;
+    --bar:#1C222A; --bar-fg:#F3F5F7; --bar-muted:#97A3B0; --bar-line:#3A4450;
+    --must-bg:#453B00; --mk-bg:#FFE23D; --mk-fg:#11151A;
+    --now:#FF5C7A; --on-now:#1D0309; --ok:#3DD16F; --on-ok:#06210F; --warn-text:#FFB41F;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0B0E11; --surface:#151A20; --fg:#EDF0F3; --muted:#97A3B0; --line:#29313A;
+  --bar:#1C222A; --bar-fg:#F3F5F7; --bar-muted:#97A3B0; --bar-line:#3A4450;
+  --must-bg:#453B00; --mk-bg:#FFE23D; --mk-fg:#11151A;
+  --now:#FF5C7A; --on-now:#1D0309; --ok:#3DD16F; --on-ok:#06210F; --warn-text:#FFB41F;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font:500 16px/1.35 var(--font-body);-webkit-text-size-adjust:100%}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:var(--bar)}
+button{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--now);outline-offset:2px}
+.bar :focus-visible,.top :focus-visible{outline-color:var(--must)}
+.in{max-width:680px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+
+/* header */
+.top{background:var(--bar);color:var(--bar-fg)}
+.top .in{padding-block:1rem .9rem}
+.kick{margin:0;font:700 .8rem var(--font-body);letter-spacing:.14em;text-transform:uppercase;color:var(--bar-muted)}
+h1{margin:.1rem 0 .55rem;font:900 2.9rem/.95 var(--font-display);letter-spacing:.01em;text-transform:uppercase;text-wrap:balance}
+.stripe{display:flex;height:6px;gap:2px;margin-bottom:.8rem}
+.stripe span{flex:1}
+.legend{margin:0 0 .6rem;color:var(--bar-muted);font-size:.95rem}
+.legend .mk{margin-left:.3rem}
+.demo{margin:0;padding:.45rem .6rem;background:var(--must);color:#11151A;font-weight:600;font-size:.9rem;border-radius:3px}
+
+/* sticky bar */
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--bar);color:var(--bar-fg);border-top:1px solid var(--bar-line)}
+.bar .in{padding-block:.6rem;display:grid;gap:.45rem}
+.seg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:6px}
+.seg button{background:transparent;border:2px solid var(--bar-line);border-radius:4px;min-height:44px;padding:0 .5rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.5rem;color:var(--bar-fg)}
+.seg button[aria-pressed="true"]{background:var(--must);border-color:var(--must);color:#11151A}
+.days button{font:900 1.35rem var(--font-display);letter-spacing:.06em;text-transform:uppercase}
+.days small{font:600 .78rem var(--font-body);letter-spacing:0;text-transform:none;opacity:.8}
+.views button{min-height:40px;font:800 1.05rem var(--font-display);letter-spacing:.08em;text-transform:uppercase}
+.clock{display:flex;align-items:center;gap:.6rem;font-size:.85rem;color:var(--bar-muted)}
+.clock input{flex:1;min-width:0;accent-color:var(--must)}
+.clock output{min-width:4.9rem;text-align:right;color:var(--bar-fg);font-weight:700;font-variant-numeric:tabular-nums}
+.clock button{background:transparent;border:2px solid var(--bar-line);border-radius:4px;min-height:34px;padding:0 .6rem;cursor:pointer;color:var(--bar-fg);font-weight:600}
+.clock button[aria-pressed="true"]{background:var(--must);border-color:var(--must);color:#11151A}
+
+/* main */
+main.in{padding-block:1rem 4rem}
+#ctl{display:grid;gap:.6rem;margin-bottom:.8rem}
+.seg2{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:6px}
+.seg2 button{background:transparent;border:2px solid var(--fg);border-radius:4px;min-height:42px;cursor:pointer;font-weight:700}
+.seg2 button[aria-pressed="true"]{background:var(--fg);color:var(--bg)}
+#q{width:100%;min-height:44px;padding:0 .8rem;border:2px solid var(--line);border-radius:4px;background:var(--surface);color:var(--fg);font:inherit}
+.tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:6px}
+.stab{flex:none;display:inline-flex;align-items:center;gap:.45rem;min-height:42px;padding:0 .8rem;border:2px solid var(--fg);border-radius:999px;background:transparent;cursor:pointer;font-weight:700;white-space:nowrap}
+.stab i{width:.7em;height:.7em;border-radius:50%;background:hsl(var(--h,0) 85% 52%)}
+.stab[aria-pressed="true"]{background:var(--fg);color:var(--bg)}
+.count{margin:0 0 .5rem;color:var(--muted);font-size:.9rem}
+.empty{padding:1.5rem 0;color:var(--muted)}
+
+.list{border:1px solid var(--line);border-radius:6px;overflow:hidden;background:var(--surface)}
+.hour{margin:0;padding:.55rem .75rem .3rem;background:var(--bg);color:var(--muted);font:700 .78rem var(--font-body);letter-spacing:.14em;text-transform:uppercase;border-bottom:1px solid var(--line)}
+.row{display:grid;grid-template-columns:3.5rem minmax(0,1fr) 2.75rem;gap:.6rem;align-items:center;padding:.6rem .7rem;background:var(--surface);border-bottom:1px solid var(--line)}
+.list>:last-child{border-bottom:0}
+.row.must{background:var(--must-bg)}
+.t{font-weight:700;font-size:1.15rem;line-height:1.1;font-variant-numeric:tabular-nums}
+.t small{display:block;margin-top:.15rem;font-weight:500;font-size:.78rem;color:var(--muted)}
+.name{font:800 1.2rem/1.05 var(--font-display);text-transform:uppercase;letter-spacing:.01em;color:var(--muted);overflow-wrap:anywhere}
+.row.maybe .name{font-size:1.4rem;color:var(--fg)}
+.row.must .name{font-size:1.7rem;font-weight:900;color:var(--fg)}
+.meta{display:flex;flex-wrap:wrap;gap:.35rem;align-items:center;margin-top:.25rem}
+.meta:empty{display:none}
+.row.live{box-shadow:inset 0 0 0 3px var(--now)}
+.row.past{opacity:.5}
+.row.skip{opacity:.4}
+.skipnote{font-size:.8rem;color:var(--muted);font-weight:600}
+.mk{display:inline-grid;place-items:center;min-width:1.5em;height:1.5em;padding:0 .15em;border-radius:50%;font:800 .8em/1 var(--font-body);margin-right:.4em;vertical-align:.12em;flex:none}
+.mk-must{background:var(--mk-bg);color:var(--mk-fg)}
+.mk-maybe{border:2px solid currentColor;background:transparent;color:var(--fg)}
+.top .mk-maybe{color:var(--bar-fg)}
+.top .mk-must{background:var(--must);color:#11151A}
+.chip{display:inline-flex;align-items:center;gap:.4em;padding:.1rem .55rem;border-radius:999px;font-size:.85rem;font-weight:600;color:var(--fg);background:hsl(var(--h) 85% 55% / .18);border:1px solid hsl(var(--h) 70% 50% / .6)}
+.chip i{width:.6em;height:.6em;border-radius:50%;background:hsl(var(--h) 80% 50%)}
+.tag{background:var(--now);color:var(--on-now);font:800 .7rem/1 var(--font-body);letter-spacing:.1em;text-transform:uppercase;padding:.28rem .4rem;border-radius:3px}
+.go{width:2.75rem;height:2.75rem;padding:0;border-radius:50%;border:2px solid var(--muted);background:transparent;color:transparent;display:grid;place-items:center;cursor:pointer}
+.go[aria-pressed="true"]{background:var(--ok);border-color:var(--ok);color:var(--on-ok)}
+.nowline{padding:.3rem .75rem;background:var(--now);color:var(--on-now);font:800 .8rem var(--font-body);letter-spacing:.1em;text-transform:uppercase}
+
+/* stage board */
+.bd{display:grid;gap:.35rem;padding:.7rem .75rem;background:var(--surface);border-bottom:1px solid var(--line)}
+.bd>.chip{justify-self:start}
+.bl{display:flex;flex-wrap:wrap;gap:.2rem .5rem;align-items:baseline}
+.bn{font:800 1.35rem/1.15 var(--font-display);text-transform:uppercase}
+.bn.must{background:var(--must);color:#11151A;padding:0 .25em}
+.bn.none{color:var(--muted);font-size:1.1rem;font-weight:700}
+.nx .bn{font-size:1.1rem}
+.nx .bn.must{font-size:1.25rem}
+.lbl{font:700 .72rem var(--font-body);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.until{color:var(--muted);font-size:.9rem}
+.sh{display:flex;justify-content:space-between;align-items:center;gap:.5rem;margin:0 0 .6rem;color:var(--muted);font-size:.9rem}
+
+/* my day */
+.sum{display:flex;flex-wrap:wrap;gap:.4rem 1rem;margin:0 0 .6rem;font-size:1rem}
+.sum b{font:900 1.4rem var(--font-display);margin-right:.2rem}
+.sum .warn b{color:var(--warn-text)}
+.sum .ok b{color:var(--ok)}
+.alert{margin:0 0 .8rem;padding:.5rem .7rem;background:var(--warn-bg);color:var(--warn-fg);font-weight:600;border-radius:4px}
+.clashhdr,.clashend{background:var(--warn-bg);color:var(--warn-fg)}
+.clashhdr{padding:.35rem .75rem;font:800 .8rem var(--font-body);letter-spacing:.1em;text-transform:uppercase}
+.clashend{height:6px}
+.gap{padding:.3rem .75rem;background:var(--bg);color:var(--muted);font-size:.85rem;border-bottom:1px solid var(--line)}
+.gap.tight{color:var(--warn-text);font-weight:700}
+.off{margin:.8rem 0 0;color:var(--muted);font-size:.9rem}
+.nm{min-width:0;cursor:pointer}
+.pick{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:.5rem .7rem;background:var(--bg);border-bottom:1px solid var(--line)}
+.pick button{min-height:44px;padding:0 .8rem;border:2px solid var(--fg);border-radius:4px;background:transparent;cursor:pointer;font-weight:700}
+.pick button[aria-pressed="true"]{background:var(--fg);color:var(--bg)}
+.alerts{margin-top:1rem;padding:.8rem .75rem;border:1px solid var(--line);border-radius:6px;background:var(--surface);display:grid;gap:.6rem}
+.alerts h3{margin:0;font:800 1.25rem var(--font-display);letter-spacing:.06em;text-transform:uppercase}
+.alerts p{margin:0;color:var(--muted);font-size:.9rem}
+.alerts a{color:var(--fg)}
+.alerts .warnp{color:var(--warn-text);font-weight:600}
+.btn{min-height:46px;padding:0 1rem;border:2px solid var(--fg);border-radius:4px;background:var(--fg);color:var(--bg);font:700 1rem var(--font-body);cursor:pointer}
+.btn.alt{background:transparent;color:var(--fg)}
+.upd{display:flex;gap:.6rem;align-items:center;justify-content:space-between;margin-bottom:.8rem;padding:.6rem .75rem;background:var(--must);color:#11151A;font-weight:700;border-radius:4px}
+.upd button{min-height:40px;border:0;border-radius:4px;background:#11151A;color:#FFE23D;font-weight:700;padding:0 .9rem;cursor:pointer}
+</style></head><body><header class="top"><div class="in">
+  <p class="kick">2025 boards · dummy run</p>
+  <h1>Warped Planner</h1>
+  <div class="stripe" id="stripe" aria-hidden="true"></div>
+  <p class="legend"><span class="mk mk-must">&#9733;&#xFE0E;</span>must see <span class="mk mk-maybe">&amp;</span>want to see · the rest are gray. <span id="stats"></span> Tap the circle on a set to say you're going. Tap a band's name to change its mark.</p>
+  <p class="demo"><b>Dummy run.</b> Start times were read from your photos of the 2025 boards. The boards show no end times, so each set is assumed to run 35 minutes.</p>
+</div></header>
+
+<nav class="bar" aria-label="Planner controls"><div class="in">
+  <div class="seg days" role="group" aria-label="Day" id="days"></div>
+  <div class="seg views" role="group" aria-label="View">
+    <button data-act="view" data-v="timeline">Timeline</button>
+    <button data-act="view" data-v="stages">Stages</button>
+    <button data-act="view" data-v="my-day">My Day</button>
+  </div>
+  <div class="clock" id="clock">
+    <span>Demo clock</span>
+    <input type="range" id="sim" min="600" max="1380" step="5" aria-label="Demo clock time">
+    <output id="simout" for="sim"></output>
+    <button data-act="live" aria-pressed="false">Live</button>
+  </div>
+</div></nav>
+
+<main class="in"><div class="upd" id="upd" hidden><span>A new schedule is ready.</span><button data-act="reload">Reload</button></div><div id="ctl"></div><div id="out"></div></main>
+
+<script>
+(function(){
+'use strict';
+var DEMO=true;                      // false on the real day: hides the demo clock, uses the real clock
+var SCHEDULE_ID='demo-2025';
+var RAW=[
+"*30H!3","408","*A Day to Remember","A Loss for Words","All Time Low","Amigo the Devil","*Anberlin","Angel Dust","Arrows in Action","As It Is",
+"Attila","&August Burns Red","Aviva","Bad Rabbits","Beauty School Dropout","Better Lovers","Black Veil Brides","&Blessthefall","Boundaries","*Bowling for Soup",
+"Boys Like Girls","Carolesdaughter","Caskets","Chained Saint","Chandler Leighton","Charlotte Sands","*Chiodos","Comeback Kid","&Crown the Empire","Deathbyromy",
+"Dinosaur Pile-Up","Drain","&Escape the Fate","*Falling in Reverse","Fame on Fire","&Fever 333","Flycatcher","Four Year Strong","From Ashes to New","Games We Play",
+"Girlfriends","&Good Riddance","Gravas","GWAR","*Gym Class Heroes","Hail the Sun","Head Automatica","Holding Absence","Hollow Pact","Holywatr",
+"Honey Revenge","Huddy","&I Prevail","I See Stars","IDKHOW","Jeremy Romance & The Zero Friends Club","Johnnie Guilbert","Julia Wolf","Jutes","Killswitch Engage",
+"Kim Dracula","Knuckle Puck","Koyo","*Lacey Sturm","Left to Suffer","&Less Than Jake","Letlive.","Lil Lotus","LØLØ","Magnolia Park",
+"Maryjo","Mayday Parade","Memphis May Fire","MGK","Microwave","Millionaires","Miss May I","Mod Sun","Mom Jeans","Motionless in White",
+"Movements","Narrow Head","New Years Day","Noelle Sucks","Not Enough Space","&Nothing,Nowhere.","*Of Mice & Men","Oxymorrons","*Pennywise","People R Ugly",
+"&Plain White T's","Point North","Royal & the Serpent","Saoes","Scene Queen","Scowl","*Senses Fail","Slaughter to Prevail","Sophie Powers","Speed of Light",
+"State Champs","*Story of the Year","Stratejacket","*Streetlight Manifesto","&Sueco","Sunami","Surfer Girl","Taylor Acorn","Ten56.","The Dark",
+"The Devil Wears Prada","The Dollyrots","The Elovaters","The Expendables","The Ghost Inside","The Home Team","&The Interrupters","The Maine","&The Red Jumpsuit Apparatus","The Wonder Years",
+"&The Word Alive","&Thursday","Traitors","Trxvis","Vended","Wage War","Waves","We the Kings","Winona Fighter","World's First Cinema",
+"*Yellowcard","Yung Gravy","*Zero 9:36"];
+var LINEUP=RAW.map(function(s){var m=(s[0]==='*'||s[0]==='&')?s[0]:'';return{name:m?s.slice(1):s,mark:m}});
+
+/* The 2025 boards, read from the photos: day -> stage -> [start time, band].
+   Times are written as on the board (10 and 11 are AM, 12 is noon, 1 to 9 are PM).
+   A 10 PM start is written with a trailing p, like '10:20p'.
+   The boards list start times only, so each set is assumed to run SET_MIN minutes.
+   Bands that are not on the marked lineup (local or late additions) get no mark automatically. */
+var SET_MIN=35;
+var BOARDS={
+ sat:{
+  'Vans Left Foot':[['11:25','ALYK'],['12:26','Girlfriends'],['1:37','The Red Jumpsuit Apparatus'],['2:58','Mayday Parade'],['4:34','Killswitch Engage'],['6:30','Motionless in White'],['8:46','A Day to Remember']],
+  'Vans Right Foot':[['11:53','Magnolia Park'],['12:59','We the Kings'],['2:15','Bowling for Soup'],['3:41','The Interrupters'],['5:27','I Prevail'],['7:33','All Time Low']],
+  'Ghost':[['12:28','Saoes'],['1:34','Attila'],['2:40','Blessthefall'],['3:46','Memphis May Fire'],['5:02','Gym Class Heroes'],['6:28','Chiodos'],['7:54','Senses Fail'],['9:20','Boys Like Girls']],
+  'Beatbox':[['11:55','The Dark'],['1:01','Sueco'],['2:07','The Word Alive'],['3:13','August Burns Red'],['4:24','The Wonder Years'],['5:45','Four Year Strong'],['7:11','Of Mice & Men'],['8:37','Less Than Jake']],
+  'Club Windham':[['12:40','Trxvis'],['1:50','Winona Fighter'],['3:00','Jutes'],['4:10','Beauty School Dropout'],['5:20','Honey Revenge'],['6:30','Amigo the Devil'],['7:40','Drain'],['8:50','Comeback Kid']],
+  'Trojan':[['12:05','Jeremy Romance & The Zero Friends Club'],['1:15','Holding Absence'],['2:25','Microwave'],['3:35','Miss May I'],['4:45','As It Is'],['5:55','Julia Wolf'],['7:05','Zero 9:36'],['8:15','Kim Dracula'],['9:25','Streetlight Manifesto']],
+  "Owen's Mixers":[['11:30','Mode'],['12:30','Gritty in Pink'],['1:30','Speed of Light'],['2:30','The Dollyrots'],['3:30','Traitors'],['4:30','A Loss for Words'],['5:30','Dinosaur Pile-Up'],['6:30','Johnnie Guilbert'],['7:30','IDKHOW'],['8:30','Charlotte Sands'],['9:30','Caskets']],
+  'Geico':[['12:00','Twin Rova'],['1:00','Hollow Pact'],['2:00','408'],['3:00','Taylor Acorn'],['4:00','Hail the Sun'],['5:00','Huddy'],['6:00','Lil Lotus'],['7:00','Chandler Leighton'],['8:00','Better Lovers'],['9:00','Carolesdaughter']]
+ },
+ sun:{
+  'Vans Left Foot':[['12:10','Walking Blue'],['1:21','Escape the Fate'],['2:32','Story of the Year'],['3:53','Slaughter to Prevail'],['5:29','Black Veil Brides'],['7:25','Yellowcard'],['9:46','Falling in Reverse']],
+  'Vans Right Foot':[['12:38','The Maine'],['1:54','Mod Sun'],['3:10',"Plain White T's"],['4:36','30H!3'],['6:22','Pennywise'],['8:28','MGK']],
+  'Ghost':[['12:32','Head Automatica'],['1:38','Knuckle Puck'],['2:44','Fame on Fire'],['3:50','Movements'],['4:56','Crown the Empire'],['6:12','From Ashes to New'],['7:28','The Devil Wears Prada'],['8:54','Wage War'],['10:20p','Hawthorne Heights']],
+  'Beatbox':[['1:05','Point North'],['2:11','Fever 333'],['3:17','The Home Team'],['4:23','Letlive.'],['5:34','Yung Gravy'],['6:45','Anberlin'],['8:11','The Ghost Inside'],['9:37','State Champs']],
+  'Club Windham':[['12:30','People R Ugly'],['1:40','Oxymorrons'],['2:50','Big Ass Truckle'],['4:00','Games We Play'],['5:10','Angel Dust'],['6:20','Scowl'],['7:30','Sunami'],['8:40','Deathbyromy'],['9:50','GWAR']],
+  'Trojan':[['1:05','Grave Secrets'],['2:15','Vended'],['3:25','Millionaires'],['4:35','Holywatr'],['5:45','Koyo'],['6:55','Nothing,Nowhere.'],['8:05','Bad Rabbits'],['9:15','I See Stars'],['10:25p','Thursday']],
+  "Owen's Mixers":[['1:00','Pertinence'],['2:00','Stratejacket'],['3:00','Narrow Head'],['4:00','Scene Queen'],['5:00','Ten56.'],['6:00','Left to Suffer'],['7:00','Not Enough Space'],['8:00','Sophie Powers'],['9:00','Royal & the Serpent'],['10:00p','The Elovaters']],
+  'Geico':[['12:30','Chained Saint'],['1:30','Maryjo'],['2:30','Flycatcher'],['3:30','Waves'],['4:30','Good Riddance'],['5:30',"World's First Cinema"],['6:30','Surfer Girl'],['7:30','Boundaries'],['8:30','Arrows in Action'],['9:30','The Expendables'],['10:30p','Lacey Sturm']]
+ }
+};
+function tmin(t){var pmf=/p$/.test(t),p=t.replace(/[ap]$/,'').split(':'),h=+p[0];if(h<10||(h===10&&pmf))h+=12;return h*60+(+p[1])}
+var SCHEDULE=[];
+['sat','sun'].forEach(function(day){var B=BOARDS[day];Object.keys(B).forEach(function(stage){B[stage].forEach(function(b){var st=tmin(b[0]);SCHEDULE.push({name:b[1],day:day,stage:stage,start:st,end:st+SET_MIN})})})});
+var onBoard={};SCHEDULE.forEach(function(x){onBoard[x.name]=1});
+
+var HUES=[350,24,46,98,150,200,262,312];
+var STAGES=[],STAGE_IDX={};
+SCHEDULE.forEach(function(x){if(!(x.stage in STAGE_IDX)){STAGE_IDX[x.stage]=STAGES.length;STAGES.push({name:x.stage,h:HUES[STAGES.length%HUES.length]})}});
+var markOf={};LINEUP.forEach(function(b){markOf[b.name]=b.mark});
+var BY_DAY={};SCHEDULE.forEach(function(x){BY_DAY[x.day]=[]});var DAYS=Object.keys(BY_DAY);
+SCHEDULE.forEach(function(x){BY_DAY[x.day].push({name:x.name,day:x.day,stage:x.stage,start:x.start,end:x.end,mark:markOf[x.name]||'',si:STAGE_IDX[x.stage]})});
+Object.keys(BY_DAY).forEach(function(k){BY_DAY[k].sort(function(a,b){return a.start-b.start||a.si-b.si})});
+/* Mark overrides: tapping a band's name lets you set its mark to star, ampersand or none. Saved on the phone. */
+var MARK_KEY='warped-marks-'+SCHEDULE_ID,OVR={};
+try{OVR=JSON.parse(localStorage.getItem(MARK_KEY)||'{}')}catch(e){}
+Object.keys(OVR).forEach(function(k){markOf[k]=OVR[k]});
+function applyMarks(){Object.keys(BY_DAY).forEach(function(d){BY_DAY[d].forEach(function(x){x.mark=markOf[x.name]||''})})}
+function setMark(n,m){markOf[n]=m;OVR[n]=m;try{localStorage.setItem(MARK_KEY,JSON.stringify(OVR))}catch(e){}applyMarks();paintStats()}
+applyMarks();
+
+var $=function(s){return document.querySelector(s)};
+var esc=function(s){return String(s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})};
+var h12=function(m){return(Math.floor(m/60)%24)%12||12};
+var pm=function(m){return Math.floor(m/60)%24>=12};
+var fmt=function(m){return h12(m)+':'+String(m%60).padStart(2,'0')};
+var fmtp=function(m){return fmt(m)+(pm(m)?' PM':' AM')};
+var dur=function(m){return m>=60?Math.floor(m/60)+'h '+String(m%60).padStart(2,'0')+'m':m+'m'};
+var STAR='★︎';
+var CHECK='<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+var VIEWS=['timeline','stages','my-day'];
+var state={editing:null,day:DAYS[0],view:'timeline',filter:'all',q:'',stage:'now',sim:14*60+30,live:!DEMO};
+var KEY='warped-going-'+SCHEDULE_ID,going=new Set();
+try{going=new Set(JSON.parse(localStorage.getItem(KEY)||'[]'))}catch(e){}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(Array.from(going)))}catch(e){}}
+
+function nowMin(){if(state.live){var d=new Date();return d.getHours()*60+d.getMinutes()}return state.sim}
+function mark(m){return m==='*'?'<span class="mk mk-must" title="Must see">'+STAR+'</span>':m==='&'?'<span class="mk mk-maybe" title="Want to see">&amp;</span>':''}
+function chip(st){return '<span class="chip" style="--h:'+st.h+'"><i></i>'+esc(st.name)+'</span>'}
+
+function row(it,o){return rowBase(it,o)+(state.editing===it.name?picker(it):'')}
+function picker(it){return '<div class="pick" role="group" aria-label="Mark for '+esc(it.name)+'"><span class="lbl">Mark</span>'+[['*',STAR+' Must see'],['&','&amp; Want to see'],['','None']].map(function(m){return '<button data-act="mark" data-name="'+esc(it.name)+'" data-v="'+m[0]+'" aria-pressed="'+(it.mark===m[0])+'">'+m[1]+'</button>'}).join('')+'</div>'}
+function rowBase(it,o){
+  o=o||{};var n=nowMin(),live=it.start<=n&&n<it.end,past=it.end<=n,g=going.has(it.name);
+  var c=['row',it.mark==='*'?'must':it.mark==='&'?'maybe':'',live?'live':'',past?'past':'',o.skip?'skip':''].filter(Boolean).join(' ');
+  return '<div class="'+c+'"><div class="t">'+fmt(it.start)+'</div>'+
+    '<div class="nm" role="button" tabindex="0" data-act="edit" data-name="'+esc(it.name)+'" aria-label="Change mark for '+esc(it.name)+'"><div class="name">'+mark(it.mark)+esc(it.name)+'</div><div class="meta">'+(live?'<span class="tag">On now</span>':'')+(o.noStage?'':chip(STAGES[it.si]))+(o.skip?'<span class="skipnote">Skipping</span>':'')+'</div></div>'+
+    '<button class="go" data-act="go" data-name="'+esc(it.name)+'" aria-pressed="'+g+'" aria-label="Going to '+esc(it.name)+'">'+CHECK+'</button></div>';
+}
+function nowline(){return '<div class="nowline">Now · '+fmtp(nowMin())+'</div>'}
+
+function listHtml(its,o){
+  o=o||{};var n=nowMin(),ni=its.findIndex(function(x){return x.start>n}),out=[],lastH=-1;
+  its.forEach(function(x,i){
+    if(i===ni)out.push(nowline());
+    var hh=Math.floor(x.start/60);
+    if(o.hours&&hh!==lastH){out.push('<h3 class="hour">'+h12(x.start)+' '+(pm(x.start)?'PM':'AM')+'</h3>');lastH=hh}
+    out.push(row(x,{noStage:o.noStage}));
+  });
+  if(ni===-1)out.push(nowline());
+  return '<div class="list">'+out.join('')+'</div>';
+}
+
+function timeline(){
+  var all=BY_DAY[state.day],q=state.q.trim().toLowerCase();
+  var its=all.filter(function(x){
+    if(state.filter==='picks'&&!x.mark)return false;
+    if(state.filter==='must'&&x.mark!=='*')return false;
+    return !q||x.name.toLowerCase().indexOf(q)>-1;
+  });
+  if(!its.length)return '<p class="empty">No sets match.</p>';
+  return '<p class="count">'+its.length+' of '+all.length+' sets</p>'+listHtml(its,{hours:true});
+}
+
+function nameCls(m){return m==='*'?'must':m==='&'?'':'none'}
+function board(){
+  var n=nowMin(),its=BY_DAY[state.day];
+  return '<div class="list">'+STAGES.map(function(st,si){
+    var s=its.filter(function(x){return x.si===si}),cur=s.find(function(x){return x.start<=n&&n<x.end}),nxt=s.find(function(x){return x.start>n});
+    return '<div class="bd">'+chip(st)+
+      '<div class="bl">'+(cur?'<span class="tag">On now</span>'+mark(cur.mark)+'<b class="bn '+nameCls(cur.mark)+'">'+esc(cur.name)+'</b><span class="until">until '+fmt(cur.end)+'</span>':'<span class="lbl">Between sets</span>')+'</div>'+
+      '<div class="bl nx">'+(nxt?'<span class="lbl">Next '+fmt(nxt.start)+'</span>'+mark(nxt.mark)+'<b class="bn '+nameCls(nxt.mark)+'">'+esc(nxt.name)+'</b>':'<span class="lbl">Done for the day</span>')+'</div></div>';
+  }).join('')+'</div>';
+}
+function stages(){
+  if(state.stage==='now')return board();
+  var si=+state.stage,s=BY_DAY[state.day].filter(function(x){return x.si===si});
+  if(!s.length)return '<p class="empty">Nothing on this stage today.</p>';
+  return '<div class="sh">'+chip(STAGES[si])+'<span>'+s.length+' sets · first '+fmtp(s[0].start)+', last '+fmtp(s[s.length-1].start)+'</span></div>'+listHtml(s,{noStage:true});
+}
+
+function gapNote(a,b){
+  var g=b.start-a.end,diff=a.si!==b.si;
+  if(diff&&g<=10)return['tight','Tight: '+g+' min to get from '+STAGES[a.si].name+' to '+STAGES[b.si].name];
+  if(diff&&g<=25)return['',g+' min to get from '+STAGES[a.si].name+' to '+STAGES[b.si].name];
+  if(g>25)return['','Free about '+dur(g)];
+  return null;
+}
+function myDay(){
+  var p=BY_DAY[state.day].filter(function(x){return x.mark||going.has(x.name)}),cl=[];
+  p.forEach(function(x){var c=cl[cl.length-1];if(c&&x.start<c.end){c.items.push(x);c.end=Math.max(c.end,x.end)}else cl.push({items:[x],start:x.start,end:x.end})});
+  var open=cl.filter(function(c){return c.items.length>1&&!c.items.some(function(x){return going.has(x.name)})});
+  var musts=p.filter(function(x){return x.mark==='*'}).length;
+  var mustOpen=open.reduce(function(a,c){return a+c.items.filter(function(x){return x.mark==='*'}).length},0);
+  var html='<div class="sum"><span><b>'+p.length+'</b>on your plan</span><span><b>'+musts+'</b>'+STAR+' must-sees</span><span class="'+(open.length?'warn':'ok')+'"><b>'+open.length+'</b>open clashes</span></div>';
+  if(mustOpen)html+='<p class="alert">'+mustOpen+' '+STAR+' must-see'+(mustOpen>1?'s are':' is')+' in a clash. Tap the circle on the set you will go to.</p>';
+  var out=[],prev=null;
+  cl.forEach(function(c){
+    var rep=c.items.length===1?c.items[0]:(c.items.find(function(x){return going.has(x.name)})||null);
+    if(prev&&rep){var gn=gapNote(prev,rep);if(gn)out.push('<div class="gap '+gn[0]+'">'+esc(gn[1])+'</div>')}
+    if(c.items.length>1){
+      var any=c.items.some(function(x){return going.has(x.name)});
+      out.push('<div class="clashhdr">Clash · starts '+c.items.map(function(x){return fmt(x.start)}).join(' / ')+(any?'':' · pick one')+'</div>');
+      c.items.forEach(function(x){out.push(row(x,{skip:any&&!going.has(x.name)}))});
+      out.push('<div class="clashend"></div>');
+    }else out.push(row(c.items[0]));
+    prev=rep;
+  });
+  var off=Object.keys(markOf).filter(function(k){return markOf[k]&&!onBoard[k]}).map(function(k){return{name:k,mark:markOf[k]}});
+  return html+'<div class="list">'+out.join('')+'</div>'+alertsPanel()+(off.length?'<p class="off"><b>Marked but not on any board:</b> '+off.map(function(b){return (b.mark==='*'?STAR+' ':'&amp; ')+esc(b.name)}).join(', ')+'</p>':'');
+}
+
+/* Calendar alerts: one event per starred set with a 10-minute alert. Floating local times, so they land at the right time in Orlando. */
+var FEST={sat:'2026-11-14',sun:'2026-11-15'},DAYLBL={sat:'Sat Nov 14',sun:'Sun Nov 15'};
+function pad2(n){return String(n).padStart(2,'0')}
+function icsEsc(t){return String(t).replace(/\\/g,'\\\\').replace(/;/g,'\\;').replace(/,/g,'\\,').replace(/\n/g,'\\n')}
+function icsFold(l){var o=[];while(l.length>70){o.push(l.slice(0,70));l=' '+l.slice(70)}o.push(l);return o.join('\r\n')}
+function icsStamp(){return new Date().toISOString().replace(/[-:]/g,'').replace(/\.\d+Z$/,'Z')}
+function icsDt(ds,m){return ds.replace(/-/g,'')+'T'+pad2(Math.floor(m/60))+pad2(m%60)+'00'}
+function icsLocal(d){return d.getFullYear()+pad2(d.getMonth()+1)+pad2(d.getDate())+'T'+pad2(d.getHours())+pad2(d.getMinutes())+'00'}
+function icsEvent(uid,start,end,summary,loc,desc,alarm){return ['BEGIN:VEVENT','UID:'+uid,'DTSTAMP:'+icsStamp(),'DTSTART:'+start,'DTEND:'+end,'SUMMARY:'+icsEsc(summary),'LOCATION:'+icsEsc(loc),'DESCRIPTION:'+icsEsc(desc),'BEGIN:VALARM','TRIGGER:-PT10M','ACTION:DISPLAY','DESCRIPTION:'+icsEsc(alarm),'END:VALARM','END:VEVENT']}
+function icsWrap(lines){return ['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Warped Planner//EN','CALSCALE:GREGORIAN','METHOD:PUBLISH','X-WR-CALNAME:Warped'].concat(lines,['END:VCALENDAR']).map(icsFold).join('\r\n')+'\r\n'}
+function starItems(){var o=[];DAYS.forEach(function(d){BY_DAY[d].forEach(function(x){if(x.mark==='*')o.push(x)})});return o}
+function icsFor(items){var L=[];items.forEach(function(x){var d=FEST[x.day];if(!d)return;L=L.concat(icsEvent(x.day+'-'+x.name.toLowerCase().replace(/[^a-z0-9]+/g,'-')+'-'+x.start+'@warped-planner',icsDt(d,x.start),icsDt(d,x.end),'\u2605 '+x.name+' \u00b7 '+x.stage,x.stage,x.name+' is on '+x.stage+' at '+fmtp(x.start)+'.',x.name+' is on '+x.stage+' in 10 mins'))});return icsWrap(L)}
+function testIcs(){var s=new Date(Date.now()+12*60000),e=new Date(s.getTime()+30*60000);return icsWrap(icsEvent('test-'+Date.now()+'@warped-planner',icsLocal(s),icsLocal(e),'\u2605 Test band \u00b7 Test stage','Test stage','Test alert from Warped Planner.','Test band is on Test stage in 10 mins'))}
+function downloadIcs(txt,name){var b=new Blob([txt],{type:'text/calendar;charset=utf-8'}),u=URL.createObjectURL(b),a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();setTimeout(function(){document.body.removeChild(a);URL.revokeObjectURL(u)},4000)}
+function alertsPanel(){
+  var st=starItems();
+  if(!st.length)return '<section class="alerts"><h3>Alerts</h3><p>Mark a band with '+STAR+' and it will show up here as a Calendar alert.</p></section>';
+  return '<section class="alerts"><h3>Alerts</h3><p>Calendar alerts 10 minutes before each of your '+st.length+' '+STAR+' sets ('+DAYS.map(function(d){return DAYLBL[d]||d}).join(' and ')+'). They live on your phone, so they work with no signal.</p>'+
+    '<button class="btn" data-act="ics">Add '+STAR+' alerts to Calendar</button>'+
+    '<p>If the button does nothing, use <a href="data:text/calendar;charset=utf-8,'+encodeURIComponent(icsFor(st))+'" download="warped-alerts.ics">this backup link</a>. Changed your marks? Tap again for a fresh set, and delete the old Warped calendar first.</p>'+
+    (DEMO?'<p class="warnp">Practice mode: these use the 2025 times on the real festival dates. Delete the Warped calendar before the real day.</p><button class="btn alt" data-act="icstest">Send me a test alert in 2 minutes</button>':'')+'</section>';
+}
+function renderCtl(){
+  var el=$('#ctl'),h='',old=el.querySelector('.tabs'),sl=old?old.scrollLeft:0;
+  if(state.view==='timeline'){
+    h='<div class="seg2" role="group" aria-label="Filter">'+[['all','All'],['picks',STAR+' + &amp;'],['must',STAR+' only']].map(function(f){return '<button data-act="filter" data-v="'+f[0]+'" aria-pressed="'+(state.filter===f[0])+'">'+f[1]+'</button>'}).join('')+'</div><input id="q" type="search" placeholder="Find a band" autocomplete="off" aria-label="Find a band">';
+  }else if(state.view==='stages'){
+    h='<div class="tabs" role="group" aria-label="Stage"><button class="stab" data-act="stage" data-v="now" aria-pressed="'+(state.stage==='now')+'">Right now</button>'+STAGES.map(function(st,i){return '<button class="stab" style="--h:'+st.h+'" data-act="stage" data-v="'+i+'" aria-pressed="'+(state.stage===String(i))+'"><i></i>'+esc(st.name)+'</button>'}).join('')+'</div>';
+  }
+  el.innerHTML=h;
+  var t=el.querySelector('.tabs');if(t)t.scrollLeft=sl;
+  var q=$('#q');if(q){q.value=state.q;q.addEventListener('input',function(){state.q=q.value;renderOut()})}
+}
+function renderOut(){
+  $('#out').innerHTML=state.view==='timeline'?timeline():state.view==='stages'?stages():myDay();
+}
+function paintBar(){
+  document.querySelectorAll('[data-act="day"]').forEach(function(b){b.setAttribute('aria-pressed',String(b.dataset.v===state.day))});
+  document.querySelectorAll('[data-act="view"]').forEach(function(b){b.setAttribute('aria-pressed',String(b.dataset.v===state.view))});
+  var n=nowMin();$('#simout').textContent=fmtp(n);$('#sim').value=Math.min(1380,Math.max(600,n));
+  $('[data-act="live"]').setAttribute('aria-pressed',String(state.live));
+}
+function render(){paintBar();renderCtl();renderOut()}
+
+document.addEventListener('click',function(e){
+  var b=e.target.closest('[data-act]');if(!b)return;
+  var a=b.dataset.act,v=b.dataset.v;
+  if(a==='day'){state.day=v;render()}
+  else if(a==='view'){state.view=v;try{location.hash=v}catch(x){}render()}
+  else if(a==='filter'){state.filter=v;renderCtl();renderOut()}
+  else if(a==='stage'){state.stage=v;renderCtl();renderOut()}
+  else if(a==='live'){state.live=!state.live;paintBar();renderOut()}
+  else if(a==='go'){var n=b.dataset.name;if(going.has(n))going.delete(n);else going.add(n);save();renderOut()}
+  else if(a==='edit'){var en=b.dataset.name;state.editing=state.editing===en?null:en;renderOut()}
+  else if(a==='mark'){setMark(b.dataset.name,v);state.editing=null;renderOut()}
+  else if(a==='ics'){downloadIcs(icsFor(starItems()),'warped-alerts.ics')}
+  else if(a==='icstest'){downloadIcs(testIcs(),'warped-test-alert.ics')}
+  else if(a==='reload'){location.reload()}
+});
+document.addEventListener('keydown',function(e){if((e.key==='Enter'||e.key===' ')&&e.target.matches&&e.target.matches('[data-act="edit"]')){e.preventDefault();e.target.click()}});
+$('#sim').addEventListener('input',function(e){state.sim=+e.target.value;state.live=false;paintBar();renderOut()});
+function fromHash(){var h=location.hash.slice(1);if(VIEWS.indexOf(h)>-1)state.view=h}
+window.addEventListener('hashchange',function(){fromHash();render()});
+setInterval(function(){if(state.live){paintBar();renderOut()}},30000);
+
+/* static bits */
+$('#days').innerHTML=DAYS.map(function(d){return '<button data-act="day" data-v="'+d+'">'+d.charAt(0).toUpperCase()+d.slice(1)+' <small>'+BY_DAY[d].length+' sets</small></button>'}).join('');$('#days').hidden=DAYS.length<2;
+$('#stripe').innerHTML=STAGES.map(function(s){return '<span style="background:hsl('+s.h+' 85% 52%)"></span>'}).join('');
+function paintStats(){var ks=Object.keys(markOf),mc=function(m){return ks.filter(function(k){return markOf[k]===m}).length},mb=function(m){return ks.filter(function(k){return markOf[k]===m&&onBoard[k]}).length};$('#stats').textContent='Boards: '+SCHEDULE.length+' sets on '+STAGES.length+' stages over two days. Of your '+mc('*')+' must-sees and '+mc('&')+' maybes, '+mb('*')+' and '+mb('&')+' are playing.'}
+paintStats();
+$('#clock').hidden=!DEMO;
+try{if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(function(){});navigator.serviceWorker.addEventListener('message',function(e){if(e.data&&e.data.type==='updated')$('#upd').hidden=false})}}catch(e){}
+fromHash();render();
+})();
+</script></body></html>
