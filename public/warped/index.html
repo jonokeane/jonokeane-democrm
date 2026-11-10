@@ -155,11 +155,11 @@ main.in{padding-block:1rem 4rem}
 .upd{display:flex;gap:.6rem;align-items:center;justify-content:space-between;margin-bottom:.8rem;padding:.6rem .75rem;background:var(--must);color:#11151A;font-weight:700;border-radius:4px}
 .upd button{min-height:40px;border:0;border-radius:4px;background:#11151A;color:#FFE23D;font-weight:700;padding:0 .9rem;cursor:pointer}
 </style></head><body><header class="top"><div class="in">
-  <p class="kick">2025 boards · dummy run</p>
+  <p class="kick">Warped Orlando · Nov 14–15, 2026</p>
   <h1>Warped Planner</h1>
   <div class="stripe" id="stripe" aria-hidden="true"></div>
-  <p class="legend"><span class="mk mk-must">&#9733;&#xFE0E;</span>must see <span class="mk mk-maybe">&amp;</span>want to see · the rest are gray. <span id="stats"></span> Tap the circle on a set to say you're going. Tap a band's name to change its mark.</p>
-  <p class="demo"><b>Dummy run.</b> Start times were read from your photos of the 2025 boards. The boards show no end times, so each set is assumed to run 35 minutes.</p>
+  <p class="legend"><span class="mk mk-must">&#9733;&#xFE0E;</span>must see <span class="mk mk-maybe">&amp;</span>want to see · the rest are gray. <span id="stats"></span> Tap a band's name to change its mark.</p>
+  <p class="demo"><b>Lineup is in.</b> The schedule (stages and times) is posted on the morning of each day. Send the board photo and this page will fill in.</p>
 </div></header>
 
 <nav class="bar" aria-label="Planner controls"><div class="in">
@@ -182,23 +182,63 @@ main.in{padding-block:1rem 4rem}
 <script>
 (function(){
 'use strict';
-var DEMO=true;                      // false on the real day: hides the demo clock, uses the real clock
-var SCHEDULE_ID='demo-2025';
-var RAW=[
-"*30H!3","408","*A Day to Remember","A Loss for Words","All Time Low","Amigo the Devil","*Anberlin","Angel Dust","Arrows in Action","As It Is",
-"Attila","&August Burns Red","Aviva","Bad Rabbits","Beauty School Dropout","Better Lovers","Black Veil Brides","&Blessthefall","Boundaries","*Bowling for Soup",
-"Boys Like Girls","Carolesdaughter","Caskets","Chained Saint","Chandler Leighton","Charlotte Sands","*Chiodos","Comeback Kid","&Crown the Empire","Deathbyromy",
-"Dinosaur Pile-Up","Drain","&Escape the Fate","*Falling in Reverse","Fame on Fire","&Fever 333","Flycatcher","Four Year Strong","From Ashes to New","Games We Play",
-"Girlfriends","&Good Riddance","Gravas","GWAR","*Gym Class Heroes","Hail the Sun","Head Automatica","Holding Absence","Hollow Pact","Holywatr",
-"Honey Revenge","Huddy","&I Prevail","I See Stars","IDKHOW","Jeremy Romance & The Zero Friends Club","Johnnie Guilbert","Julia Wolf","Jutes","Killswitch Engage",
-"Kim Dracula","Knuckle Puck","Koyo","*Lacey Sturm","Left to Suffer","&Less Than Jake","Letlive.","Lil Lotus","LØLØ","Magnolia Park",
-"Maryjo","Mayday Parade","Memphis May Fire","MGK","Microwave","Millionaires","Miss May I","Mod Sun","Mom Jeans","Motionless in White",
-"Movements","Narrow Head","New Years Day","Noelle Sucks","Not Enough Space","&Nothing,Nowhere.","*Of Mice & Men","Oxymorrons","*Pennywise","People R Ugly",
-"&Plain White T's","Point North","Royal & the Serpent","Saoes","Scene Queen","Scowl","*Senses Fail","Slaughter to Prevail","Sophie Powers","Speed of Light",
-"State Champs","*Story of the Year","Stratejacket","*Streetlight Manifesto","&Sueco","Sunami","Surfer Girl","Taylor Acorn","Ten56.","The Dark",
-"The Devil Wears Prada","The Dollyrots","The Elovaters","The Expendables","The Ghost Inside","The Home Team","&The Interrupters","The Maine","&The Red Jumpsuit Apparatus","The Wonder Years",
-"&The Word Alive","&Thursday","Traitors","Trxvis","Vended","Wage War","Waves","We the Kings","Winona Fighter","World's First Cinema",
-"*Yellowcard","Yung Gravy","*Zero 9:36"];
+var DEMO=false;
+var SCHEDULE_ID='2026';
+var PENDING=true;   // true until the morning-of boards are loaded into BOARDS below
+var RAW=[];
+
+var PEND={"sat": [["*", "311"], ["*", "Alexisonfire"], ["", "Allison"], ["&", "Anthony Green & The Boom Done Band"], ["", "Arm's Length"], ["&", "Atmosphere"], ["", "Bad Cop Bad Cop"], ["&", "Between the Buried and Me"], ["&", "Boston Manor"], ["&", "Bowling for Soup"], ["", "Brayton"], ["", "Broadside"], ["", "Bryce Vine"], ["", "Carolesdaughter"], ["", "Clique"], ["&", "Dance Gavin Dance"], ["", "Divisi\u00f3n Min\u00fascula"], ["", "Drain"], ["*", "Dropkick Murphys"], ["", "Emmure"], ["", "Family Force 5"], ["", "Fieldhockey"], ["", "Firesun"], ["", "Fireworks"], ["", "Garbagebarbie"], ["", "Girlfriends"], ["", "Good Terms"], ["", "Grandson"], ["&", "Gym Class Heroes"], ["*", "Hawthorne Heights"], ["", "Holy Wars"], ["", "Honey Revenge"], ["*", "Hoobastank"], ["", "I Set My Friends on Fire"], ["", "Initiate"], ["", "Joey Valence & Brae"], ["", "John Harvie"], ["", "Losers Club"], ["", "Marianas Trench"], ["", "Maybsomeday"], ["&", "Maylene and the Sons of Disaster"], ["", "NIIS"], ["", "Norma Jean"], ["", "Origami Angel"], ["", "Oxymorrons"], ["", "People R Ugly"], ["", "Rain City Drive"], ["", "Raue"], ["", "Saint Blonde"], ["&", "Save Ferris"], ["", "Scarlet House"], ["", "Senses"], ["", "Silly Goose"], ["*", "Silverstein"], ["*", "Simple Plan"], ["", "Sleeping with Sirens"], ["", "South Arcade"], ["*", "Sublime"], ["", "Suicide Silence"], ["", "Sunami"], ["", "The Academy Is..."], ["", "The Home Team"], ["", "The Summer Set"], ["", "The Wrecks"], ["*", "Third Eye Blind"], ["", "Thousand Below"], ["", "Tillie"], ["", "Trxvis"], ["", "Wesghost"], ["", "Winona Fighter"], ["", "Yelawolf"]], "sun": [["&", "30H!3"], ["&", "All That Remains"], ["*", "Bayside"], ["", "Beauty School Dropout"], ["", "Ben Quad"], ["", "Big Ass Truck I.E."], ["", "Breathe Carolina"], ["", "Capstan"], ["", "Chlorine"], ["", "Citizen"], ["", "Codefendants"], ["", "Counterparts"], ["", "Daisy Grenade"], ["", "Deathbyromy"], ["*", "Dirty Heads"], ["", "Doobie"], ["", "Drop Dead, Gorgeous"], ["", "Elijah"], ["*", "Emery"], ["&", "Fit for a King"], ["", "Fox Lake"], ["", "Free Throw"], ["&", "From First to Last"], ["", "Games We Play"], ["", "Gang!"], ["&", "Gideon"], ["", "Glassjaw"], ["", "Haywire"], ["", "Holywatr"], ["", "Hot Chelle Rae"], ["", "Hot Milk"], ["", "Hot Mulligan"], ["", "Iann Dior"], ["&", "Insane Clown Posse"], ["*", "Jimmy Eat World"], ["", "Joyce Manor"], ["", "Just Surrender"], ["", "Jutes"], ["", "Kennyhoopla"], ["", "Lakeview"], ["", "Madball"], ["", "Makari"], ["", "Millington"], ["&", "Motion City Soundtrack"], ["*", "MxPx"], ["*", "New Found Glory"], ["", "Pain of Truth"], ["*", "Phantom Planet"], ["*", "Reel Big Fish"], ["", "Rosecoloredworld"], ["", "Sace6"], ["*", "Scary Kids Scaring Kids"], ["", "Set It Off"], ["", "Set Your Goals"], ["", "Sitting on Saturn"], ["", "Stand Atlantic"], ["", "Super Sometimes"], ["*", "Taking Back Sunday"], ["", "Teen Jesus and the Jean Teasers"], ["", "Teen Mortgage"], ["", "The Cab"], ["&", "The Early November"], ["", "The Paradox"], ["*", "The Starting Line"], ["*", "The Used"], ["*", "Thrice"], ["", "Upon a Burning Body"], ["", "Vana"], ["", "Vienna Vienna"], ["", "Wolves of Glendale"]]};
+function pendingApp(){
+  var $=function(q){return document.querySelector(q)};
+  var esc=function(t){return String(t).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})};
+  var STAR='\u2605\ufe0e',KEY='warped-marks-2026-lineup',OVR={};
+  try{OVR=JSON.parse(localStorage.getItem(KEY)||'{}')}catch(e){}
+  var st={day:'sat',filter:'all',q:'',edit:null};
+  var DL={sat:'Saturday Nov 14',sun:'Sunday Nov 15'};
+  function mk(n,d){var k=d+'|'+n;return k in OVR?OVR[k]:null}
+  var items=[];['sat','sun'].forEach(function(d){PEND[d].forEach(function(b){items.push({day:d,name:b[1],base:b[0]})})});
+  function cur(it){var o=mk(it.name,it.day);return o===null?it.base:o}
+  function badge(m){return m==='*'?'<span class="mk mk-must">'+STAR+'</span>':m==='&'?'<span class="mk mk-maybe">&amp;</span>':''}
+  function stats(){var c={'*':0,'&':0};items.forEach(function(i){var m=cur(i);if(c[m]!==undefined)c[m]++});$('#stats').textContent='Lineup: '+items.length+' bands. '+c['*']+' must-sees and '+c['&']+' maybes.'}
+  function draw(){
+    var q=st.q.trim().toLowerCase();
+    var its=items.filter(function(i){if(i.day!==st.day)return false;var m=cur(i);if(st.filter==='picks'&&!m)return false;if(st.filter==='must'&&m!=='*')return false;return !q||i.name.toLowerCase().indexOf(q)>-1});
+    its.sort(function(a,b){var r=function(i){var m=cur(i);return m==='*'?0:m==='&'?1:2};return r(a)-r(b)||a.name.localeCompare(b.name)});
+    var h='<div class="seg2" role="group" aria-label="Filter">'+[['all','All'],['picks',STAR+' + &amp;'],['must',STAR+' only']].map(function(f){return '<button data-p="filter" data-v="'+f[0]+'" aria-pressed="'+(st.filter===f[0])+'">'+f[1]+'</button>'}).join('')+'</div>';
+    $('#ctl').innerHTML=h+'<input id="q" type="search" placeholder="Find a band" autocomplete="off" aria-label="Find a band" value="'+esc(st.q)+'">';
+    var qq=$('#q');qq.addEventListener('input',function(){st.q=qq.value;list()});
+    list();
+    document.querySelectorAll('[data-p="day"]').forEach(function(b){b.setAttribute('aria-pressed',String(b.dataset.v===st.day))});
+  }
+  function list(){
+    var q=st.q.trim().toLowerCase();
+    var its=items.filter(function(i){if(i.day!==st.day)return false;var m=cur(i);if(st.filter==='picks'&&!m)return false;if(st.filter==='must'&&m!=='*')return false;return !q||i.name.toLowerCase().indexOf(q)>-1});
+    its.sort(function(a,b){var r=function(i){var m=cur(i);return m==='*'?0:m==='&'?1:2};return r(a)-r(b)||a.name.localeCompare(b.name)});
+    var out=[];
+    its.forEach(function(i){var m=cur(i);
+      out.push('<div class="row '+(m==='*'?'must':m==='&'?'maybe':'')+'" style="grid-template-columns:minmax(0,1fr)"><div class="nm" role="button" tabindex="0" data-p="edit" data-name="'+esc(i.name)+'"><div class="name">'+badge(m)+esc(i.name)+'</div></div></div>');
+      if(st.edit===i.name)out.push('<div class="pick" role="group"><span class="lbl">Mark</span>'+[['*',STAR+' Must see'],['&','&amp; Want to see'],['','None']].map(function(x){return '<button data-p="mark" data-name="'+esc(i.name)+'" data-v="'+x[0]+'" aria-pressed="'+(m===x[0])+'">'+x[1]+'</button>'}).join('')+'</div>');
+    });
+    $('#out').innerHTML='<p class="count">'+its.length+' bands · '+DL[st.day]+'</p>'+(its.length?'<div class="list">'+out.join('')+'</div>':'<p class="empty">No bands match.</p>');
+  }
+  $('#stripe').innerHTML='';
+  $('#days').innerHTML=['sat','sun'].map(function(d){return '<button data-p="day" data-v="'+d+'">'+(d==='sat'?'Sat':'Sun')+' <small>'+PEND[d].length+' bands</small></button>'}).join('');
+  document.querySelector('.views').hidden=true;
+  $('#clock').hidden=true;
+  document.addEventListener('click',function(e){
+    var b=e.target.closest('[data-p],[data-act="reload"]');if(!b)return;
+    if(b.dataset.act==='reload'){location.reload();return}
+    var a=b.dataset.p,v=b.dataset.v;
+    if(a==='day'){st.day=v;st.edit=null;draw()}
+    else if(a==='filter'){st.filter=v;draw()}
+    else if(a==='edit'){st.edit=st.edit===b.dataset.name?null:b.dataset.name;list()}
+    else if(a==='mark'){var it=items.filter(function(i){return i.name===b.dataset.name})[0];OVR[it.day+'|'+it.name]=v;try{localStorage.setItem(KEY,JSON.stringify(OVR))}catch(x){}st.edit=null;stats();list()}
+  });
+  document.addEventListener('keydown',function(e){if((e.key==='Enter'||e.key===' ')&&e.target.matches&&e.target.matches('[data-p="edit"]')){e.preventDefault();e.target.click()}});
+  stats();draw();
+  try{if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(function(){});navigator.serviceWorker.addEventListener('message',function(e){if(e.data&&e.data.type==='updated')$('#upd').hidden=false})}}catch(e){}
+}
+if(PENDING){pendingApp();return}
 var LINEUP=RAW.map(function(s){var m=(s[0]==='*'||s[0]==='&')?s[0]:'';return{name:m?s.slice(1):s,mark:m}});
 
 /* The 2025 boards, read from the photos: day -> stage -> [start time, band].
@@ -207,28 +247,7 @@ var LINEUP=RAW.map(function(s){var m=(s[0]==='*'||s[0]==='&')?s[0]:'';return{nam
    The boards list start times only, so each set is assumed to run SET_MIN minutes.
    Bands that are not on the marked lineup (local or late additions) get no mark automatically. */
 var SET_MIN=35;
-var BOARDS={
- sat:{
-  'Vans Left Foot':[['11:25','ALYK'],['12:26','Girlfriends'],['1:37','The Red Jumpsuit Apparatus'],['2:58','Mayday Parade'],['4:34','Killswitch Engage'],['6:30','Motionless in White'],['8:46','A Day to Remember']],
-  'Vans Right Foot':[['11:53','Magnolia Park'],['12:59','We the Kings'],['2:15','Bowling for Soup'],['3:41','The Interrupters'],['5:27','I Prevail'],['7:33','All Time Low']],
-  'Ghost':[['12:28','Saoes'],['1:34','Attila'],['2:40','Blessthefall'],['3:46','Memphis May Fire'],['5:02','Gym Class Heroes'],['6:28','Chiodos'],['7:54','Senses Fail'],['9:20','Boys Like Girls']],
-  'Beatbox':[['11:55','The Dark'],['1:01','Sueco'],['2:07','The Word Alive'],['3:13','August Burns Red'],['4:24','The Wonder Years'],['5:45','Four Year Strong'],['7:11','Of Mice & Men'],['8:37','Less Than Jake']],
-  'Club Windham':[['12:40','Trxvis'],['1:50','Winona Fighter'],['3:00','Jutes'],['4:10','Beauty School Dropout'],['5:20','Honey Revenge'],['6:30','Amigo the Devil'],['7:40','Drain'],['8:50','Comeback Kid']],
-  'Trojan':[['12:05','Jeremy Romance & The Zero Friends Club'],['1:15','Holding Absence'],['2:25','Microwave'],['3:35','Miss May I'],['4:45','As It Is'],['5:55','Julia Wolf'],['7:05','Zero 9:36'],['8:15','Kim Dracula'],['9:25','Streetlight Manifesto']],
-  "Owen's Mixers":[['11:30','Mode'],['12:30','Gritty in Pink'],['1:30','Speed of Light'],['2:30','The Dollyrots'],['3:30','Traitors'],['4:30','A Loss for Words'],['5:30','Dinosaur Pile-Up'],['6:30','Johnnie Guilbert'],['7:30','IDKHOW'],['8:30','Charlotte Sands'],['9:30','Caskets']],
-  'Geico':[['12:00','Twin Rova'],['1:00','Hollow Pact'],['2:00','408'],['3:00','Taylor Acorn'],['4:00','Hail the Sun'],['5:00','Huddy'],['6:00','Lil Lotus'],['7:00','Chandler Leighton'],['8:00','Better Lovers'],['9:00','Carolesdaughter']]
- },
- sun:{
-  'Vans Left Foot':[['12:10','Walking Blue'],['1:21','Escape the Fate'],['2:32','Story of the Year'],['3:53','Slaughter to Prevail'],['5:29','Black Veil Brides'],['7:25','Yellowcard'],['9:46','Falling in Reverse']],
-  'Vans Right Foot':[['12:38','The Maine'],['1:54','Mod Sun'],['3:10',"Plain White T's"],['4:36','30H!3'],['6:22','Pennywise'],['8:28','MGK']],
-  'Ghost':[['12:32','Head Automatica'],['1:38','Knuckle Puck'],['2:44','Fame on Fire'],['3:50','Movements'],['4:56','Crown the Empire'],['6:12','From Ashes to New'],['7:28','The Devil Wears Prada'],['8:54','Wage War'],['10:20p','Hawthorne Heights']],
-  'Beatbox':[['1:05','Point North'],['2:11','Fever 333'],['3:17','The Home Team'],['4:23','Letlive.'],['5:34','Yung Gravy'],['6:45','Anberlin'],['8:11','The Ghost Inside'],['9:37','State Champs']],
-  'Club Windham':[['12:30','People R Ugly'],['1:40','Oxymorrons'],['2:50','Big Ass Truckle'],['4:00','Games We Play'],['5:10','Angel Dust'],['6:20','Scowl'],['7:30','Sunami'],['8:40','Deathbyromy'],['9:50','GWAR']],
-  'Trojan':[['1:05','Grave Secrets'],['2:15','Vended'],['3:25','Millionaires'],['4:35','Holywatr'],['5:45','Koyo'],['6:55','Nothing,Nowhere.'],['8:05','Bad Rabbits'],['9:15','I See Stars'],['10:25p','Thursday']],
-  "Owen's Mixers":[['1:00','Pertinence'],['2:00','Stratejacket'],['3:00','Narrow Head'],['4:00','Scene Queen'],['5:00','Ten56.'],['6:00','Left to Suffer'],['7:00','Not Enough Space'],['8:00','Sophie Powers'],['9:00','Royal & the Serpent'],['10:00p','The Elovaters']],
-  'Geico':[['12:30','Chained Saint'],['1:30','Maryjo'],['2:30','Flycatcher'],['3:30','Waves'],['4:30','Good Riddance'],['5:30',"World's First Cinema"],['6:30','Surfer Girl'],['7:30','Boundaries'],['8:30','Arrows in Action'],['9:30','The Expendables'],['10:30p','Lacey Sturm']]
- }
-};
+var BOARDS={sat:{},sun:{}};
 function tmin(t){var pmf=/p$/.test(t),p=t.replace(/[ap]$/,'').split(':'),h=+p[0];if(h<10||(h===10&&pmf))h+=12;return h*60+(+p[1])}
 var SCHEDULE=[];
 ['sat','sun'].forEach(function(day){var B=BOARDS[day];Object.keys(B).forEach(function(stage){B[stage].forEach(function(b){var st=tmin(b[0]);SCHEDULE.push({name:b[1],day:day,stage:stage,start:st,end:st+SET_MIN})})})});
