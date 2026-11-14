@@ -159,7 +159,7 @@ main.in{padding-block:1rem 4rem}
   <h1>Warped Planner</h1>
   <div class="stripe" id="stripe" aria-hidden="true"></div>
   <p class="legend"><span class="mk mk-must">&#9733;&#xFE0E;</span>must see <span class="mk mk-maybe">&amp;</span>want to see · the rest are gray. <span id="stats"></span> Tap a band's name to change its mark.</p>
-  <p class="demo"><b>Lineup is in.</b> The schedule (stages and times) is posted on the morning of each day. Send the board photo and this page will fill in.</p>
+  <p class="demo"><b>Saturday board loaded.</b> Sunday posts Sunday morning. Boards show start times only, so each set is assumed to run 35 min. <b>Simple Plan's time was not written on the board: 9:00 is a guess.</b> Last Chad Gilbert Stage slot (10:00 PM) reads "Onefor?" (name partly hidden).</p>
 </div></header>
 
 <nav class="bar" aria-label="Planner controls"><div class="in">
@@ -184,8 +184,8 @@ main.in{padding-block:1rem 4rem}
 'use strict';
 var DEMO=false;
 var SCHEDULE_ID='2026';
-var PENDING=true;   // true until the morning-of boards are loaded into BOARDS below
-var RAW=[];
+var PENDING=false;   // true until the morning-of boards are loaded into BOARDS below
+var RAW=["*311", "*Alexisonfire", "Allison", "&Anthony Green & The Boom Done Band", "Arm's Length", "&Atmosphere", "Bad Cop Bad Cop", "&Between the Buried and Me", "&Boston Manor", "&Bowling for Soup", "Brayton", "Broadside", "Bryce Vine", "Carolesdaughter", "Clique", "&Dance Gavin Dance", "Divisi\u00f3n Min\u00fascula", "Drain", "*Dropkick Murphys", "Emmure", "Family Force 5", "Fieldhockey", "Firesun", "Fireworks", "Garbagebarbie", "Girlfriends", "Good Terms", "Grandson", "&Gym Class Heroes", "*Hawthorne Heights", "Holy Wars", "Honey Revenge", "*Hoobastank", "I Set My Friends on Fire", "Initiate", "Joey Valence & Brae", "John Harvie", "Losers Club", "Marianas Trench", "Maybsomeday", "&Maylene and the Sons of Disaster", "NIIS", "Norma Jean", "Origami Angel", "Oxymorrons", "People R Ugly", "Rain City Drive", "Raue", "Saint Blonde", "&Save Ferris", "Scarlet House", "Senses", "Silly Goose", "*Silverstein", "*Simple Plan", "Sleeping with Sirens", "South Arcade", "*Sublime", "Suicide Silence", "Sunami", "The Academy Is...", "The Home Team", "The Summer Set", "The Wrecks", "*Third Eye Blind", "Thousand Below", "Tillie", "Trxvis", "Wesghost", "Winona Fighter", "Yelawolf", "&30H!3", "&All That Remains", "*Bayside", "Beauty School Dropout", "Ben Quad", "Big Ass Truck I.E.", "Breathe Carolina", "Capstan", "Chlorine", "Citizen", "Codefendants", "Counterparts", "Daisy Grenade", "Deathbyromy", "*Dirty Heads", "Doobie", "Drop Dead, Gorgeous", "Elijah", "*Emery", "&Fit for a King", "Fox Lake", "Free Throw", "&From First to Last", "Games We Play", "Gang!", "&Gideon", "Glassjaw", "Haywire", "Holywatr", "Hot Chelle Rae", "Hot Milk", "Hot Mulligan", "Iann Dior", "&Insane Clown Posse", "*Jimmy Eat World", "Joyce Manor", "Just Surrender", "Jutes", "Kennyhoopla", "Lakeview", "Madball", "Makari", "Millington", "&Motion City Soundtrack", "*MxPx", "*New Found Glory", "Pain of Truth", "*Phantom Planet", "*Reel Big Fish", "Rosecoloredworld", "Sace6", "*Scary Kids Scaring Kids", "Set It Off", "Set Your Goals", "Sitting on Saturn", "Stand Atlantic", "Super Sometimes", "*Taking Back Sunday", "Teen Jesus and the Jean Teasers", "Teen Mortgage", "The Cab", "&The Early November", "The Paradox", "*The Starting Line", "*The Used", "*Thrice", "Upon a Burning Body", "Vana", "Vienna Vienna", "Wolves of Glendale"];
 
 var PEND={"sat": [["*", "311"], ["*", "Alexisonfire"], ["", "Allison"], ["&", "Anthony Green & The Boom Done Band"], ["", "Arm's Length"], ["&", "Atmosphere"], ["", "Bad Cop Bad Cop"], ["&", "Between the Buried and Me"], ["&", "Boston Manor"], ["&", "Bowling for Soup"], ["", "Brayton"], ["", "Broadside"], ["", "Bryce Vine"], ["", "Carolesdaughter"], ["", "Clique"], ["&", "Dance Gavin Dance"], ["", "Divisi\u00f3n Min\u00fascula"], ["", "Drain"], ["*", "Dropkick Murphys"], ["", "Emmure"], ["", "Family Force 5"], ["", "Fieldhockey"], ["", "Firesun"], ["", "Fireworks"], ["", "Garbagebarbie"], ["", "Girlfriends"], ["", "Good Terms"], ["", "Grandson"], ["&", "Gym Class Heroes"], ["*", "Hawthorne Heights"], ["", "Holy Wars"], ["", "Honey Revenge"], ["*", "Hoobastank"], ["", "I Set My Friends on Fire"], ["", "Initiate"], ["", "Joey Valence & Brae"], ["", "John Harvie"], ["", "Losers Club"], ["", "Marianas Trench"], ["", "Maybsomeday"], ["&", "Maylene and the Sons of Disaster"], ["", "NIIS"], ["", "Norma Jean"], ["", "Origami Angel"], ["", "Oxymorrons"], ["", "People R Ugly"], ["", "Rain City Drive"], ["", "Raue"], ["", "Saint Blonde"], ["&", "Save Ferris"], ["", "Scarlet House"], ["", "Senses"], ["", "Silly Goose"], ["*", "Silverstein"], ["*", "Simple Plan"], ["", "Sleeping with Sirens"], ["", "South Arcade"], ["*", "Sublime"], ["", "Suicide Silence"], ["", "Sunami"], ["", "The Academy Is..."], ["", "The Home Team"], ["", "The Summer Set"], ["", "The Wrecks"], ["*", "Third Eye Blind"], ["", "Thousand Below"], ["", "Tillie"], ["", "Trxvis"], ["", "Wesghost"], ["", "Winona Fighter"], ["", "Yelawolf"]], "sun": [["&", "30H!3"], ["&", "All That Remains"], ["*", "Bayside"], ["", "Beauty School Dropout"], ["", "Ben Quad"], ["", "Big Ass Truck I.E."], ["", "Breathe Carolina"], ["", "Capstan"], ["", "Chlorine"], ["", "Citizen"], ["", "Codefendants"], ["", "Counterparts"], ["", "Daisy Grenade"], ["", "Deathbyromy"], ["*", "Dirty Heads"], ["", "Doobie"], ["", "Drop Dead, Gorgeous"], ["", "Elijah"], ["*", "Emery"], ["&", "Fit for a King"], ["", "Fox Lake"], ["", "Free Throw"], ["&", "From First to Last"], ["", "Games We Play"], ["", "Gang!"], ["&", "Gideon"], ["", "Glassjaw"], ["", "Haywire"], ["", "Holywatr"], ["", "Hot Chelle Rae"], ["", "Hot Milk"], ["", "Hot Mulligan"], ["", "Iann Dior"], ["&", "Insane Clown Posse"], ["*", "Jimmy Eat World"], ["", "Joyce Manor"], ["", "Just Surrender"], ["", "Jutes"], ["", "Kennyhoopla"], ["", "Lakeview"], ["", "Madball"], ["", "Makari"], ["", "Millington"], ["&", "Motion City Soundtrack"], ["*", "MxPx"], ["*", "New Found Glory"], ["", "Pain of Truth"], ["*", "Phantom Planet"], ["*", "Reel Big Fish"], ["", "Rosecoloredworld"], ["", "Sace6"], ["*", "Scary Kids Scaring Kids"], ["", "Set It Off"], ["", "Set Your Goals"], ["", "Sitting on Saturn"], ["", "Stand Atlantic"], ["", "Super Sometimes"], ["*", "Taking Back Sunday"], ["", "Teen Jesus and the Jean Teasers"], ["", "Teen Mortgage"], ["", "The Cab"], ["&", "The Early November"], ["", "The Paradox"], ["*", "The Starting Line"], ["*", "The Used"], ["*", "Thrice"], ["", "Upon a Burning Body"], ["", "Vana"], ["", "Vienna Vienna"], ["", "Wolves of Glendale"]]};
 function pendingApp(){
@@ -247,10 +247,23 @@ var LINEUP=RAW.map(function(s){var m=(s[0]==='*'||s[0]==='&')?s[0]:'';return{nam
    The boards list start times only, so each set is assumed to run SET_MIN minutes.
    Bands that are not on the marked lineup (local or late additions) get no mark automatically. */
 var SET_MIN=35;
-var BOARDS={sat:{},sun:{}};
+var BOARDS={
+ sat:{
+  'Vans':[['12:29','Firesun'],['1:35','Joey Valence & Brae'],['2:46','Hawthorne Heights'],['4:17','Hoobastank'],['5:53','Breathe Carolina'],['7:44','Third Eye Blind'],['9:00','Simple Plan']],
+  'Off the Wall':[['1:02','Reverend Peyton'],['2:08','Bryce Vine'],['3:29','Bowling for Soup'],['5:00','Sleeping with Sirens'],['6:46','311'],['8:47','Sublime']],
+  'Ghost':[['1:36','Rain City Drive'],['3:00','Between the Buried and Me'],['4:24','Girlfriends'],['5:48','Silverstein'],['7:12','Grandson'],['8:36','Dropkick Murphys']],
+  'Beatbox':[['2:18','Family Force 5'],['3:42','The Home Team'],['5:06','Boston Manor'],['6:30','Yelawolf'],['7:54','Suicide Silence'],['9:28','Alexisonfire']],
+  'Verizon':[['1:05','People R Ugly'],['2:15','Oxymorrons'],['3:25','Carolesdaughter'],['4:35','Anthony Green & The Boom Done Band'],['5:45','Wesghost'],['6:55','Norma Jean'],['8:05','Save Ferris'],['9:15','Fireworks']],
+  'Club Wyndham':[['12:30','Brayton'],['1:40','I Set My Friends on Fire'],['2:50','Honey Revenge'],['4:00','The Summer Set'],['5:10','South Arcade'],['6:20','Allison'],['7:30','Broadside'],['8:40','The Wrecks']],
+  'Chad Gilbert':[['1:00','Losers Club'],['2:00','Saint Blonde'],['3:00','John Harvie'],['4:00','Trxvis'],['5:00','Winona Fighter'],['6:00','Silly Goose'],['7:00','Bad Cop Bad Cop'],['8:00','Initiate'],['9:00','Emmure'],['10:00p','Onefor?']],
+  'Larceny Bourbon':[['12:30','Maybsomeday'],['1:30','Fieldhockey'],['2:30','Tillie'],['3:30','Raue'],['4:30','Codefendants'],['5:30','Good Terms'],['6:30','Rosecoloredworld'],['7:30','Senses'],['8:30','Holy Wars'],['9:30','Maylene and the Sons of Disaster']]
+ },
+ sun:{}
+};
 function tmin(t){var pmf=/p$/.test(t),p=t.replace(/[ap]$/,'').split(':'),h=+p[0];if(h<10||(h===10&&pmf))h+=12;return h*60+(+p[1])}
 var SCHEDULE=[];
 ['sat','sun'].forEach(function(day){var B=BOARDS[day];Object.keys(B).forEach(function(stage){B[stage].forEach(function(b){var st=tmin(b[0]);SCHEDULE.push({name:b[1],day:day,stage:stage,start:st,end:st+SET_MIN})})})});
+var DAYOF={};Object.keys(PEND).forEach(function(d){PEND[d].forEach(function(b){DAYOF[b[1]]=d})});
 var onBoard={};SCHEDULE.forEach(function(x){onBoard[x.name]=1});
 
 var HUES=[350,24,46,98,150,200,262,312];
@@ -366,7 +379,7 @@ function myDay(){
     }else out.push(row(c.items[0]));
     prev=rep;
   });
-  var off=Object.keys(markOf).filter(function(k){return markOf[k]&&!onBoard[k]}).map(function(k){return{name:k,mark:markOf[k]}});
+  var off=Object.keys(markOf).filter(function(k){return markOf[k]&&!onBoard[k]&&DAYOF[k]&&BY_DAY[DAYOF[k]]}).map(function(k){return{name:k,mark:markOf[k]}});
   return html+'<div class="list">'+out.join('')+'</div>'+alertsPanel()+(off.length?'<p class="off"><b>Marked but not on any board:</b> '+off.map(function(b){return (b.mark==='*'?STAR+' ':'&amp; ')+esc(b.name)}).join(', ')+'</p>':'');
 }
 
@@ -438,7 +451,7 @@ setInterval(function(){if(state.live){paintBar();renderOut()}},30000);
 /* static bits */
 $('#days').innerHTML=DAYS.map(function(d){return '<button data-act="day" data-v="'+d+'">'+d.charAt(0).toUpperCase()+d.slice(1)+' <small>'+BY_DAY[d].length+' sets</small></button>'}).join('');$('#days').hidden=DAYS.length<2;
 $('#stripe').innerHTML=STAGES.map(function(s){return '<span style="background:hsl('+s.h+' 85% 52%)"></span>'}).join('');
-function paintStats(){var ks=Object.keys(markOf),mc=function(m){return ks.filter(function(k){return markOf[k]===m}).length},mb=function(m){return ks.filter(function(k){return markOf[k]===m&&onBoard[k]}).length};$('#stats').textContent='Boards: '+SCHEDULE.length+' sets on '+STAGES.length+' stages over two days. Of your '+mc('*')+' must-sees and '+mc('&')+' maybes, '+mb('*')+' and '+mb('&')+' are playing.'}
+function paintStats(){var ks=Object.keys(markOf),mc=function(m){return ks.filter(function(k){return markOf[k]===m}).length},mb=function(m){return ks.filter(function(k){return markOf[k]===m&&onBoard[k]}).length};$('#stats').textContent='Boards: '+SCHEDULE.length+' sets on '+STAGES.length+' stages. Of your '+mc('*')+' must-sees and '+mc('&')+' maybes, '+mb('*')+' and '+mb('&')+' are playing.'}
 paintStats();
 $('#clock').hidden=!DEMO;
 try{if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(function(){});navigator.serviceWorker.addEventListener('message',function(e){if(e.data&&e.data.type==='updated')$('#upd').hidden=false})}}catch(e){}
