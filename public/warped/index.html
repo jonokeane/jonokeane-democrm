@@ -159,7 +159,7 @@ main.in{padding-block:1rem 4rem}
   <h1>Warped Planner</h1>
   <div class="stripe" id="stripe" aria-hidden="true"></div>
   <p class="legend"><span class="mk mk-must">&#9733;&#xFE0E;</span>must see <span class="mk mk-maybe">&amp;</span>want to see · the rest are gray. <span id="stats"></span> Tap a band's name to change its mark.</p>
-  <p class="demo"><b>Saturday board loaded.</b> Sunday posts Sunday morning. Boards show start times only, so each set is assumed to run 35 min. <b>Simple Plan 9:55 was confirmed in person (not on the board).</b> Last Chad Gilbert Stage slot (10:00 PM) reads "Onefor?" (name partly hidden).</p>
+  <p class="demo"><b>Sunday board loaded</b> from a photo taken at an angle. <b>Many minute digits were hard to read, so some times are best guesses (&#177;10 min).</b> Boards show start times only, so each set is assumed to run 35 min. Check any set you care about against the board.</p>
 </div></header>
 
 <nav class="bar" aria-label="Planner controls"><div class="in">
@@ -258,7 +258,16 @@ var BOARDS={
   'Chad Gilbert':[['1:00','Losers Club'],['2:00','Saint Blonde'],['3:00','John Harvie'],['4:00','Trxvis'],['5:00','Winona Fighter'],['6:00','Silly Goose'],['7:00','Bad Cop Bad Cop'],['8:00','Initiate'],['9:00','Emmure'],['10:00p','Onefor?']],
   'Larceny Bourbon':[['12:30','Maybsomeday'],['1:30','Fieldhockey'],['2:30','Tillie'],['3:30','Raue'],['4:30','Codefendants'],['5:30','Good Terms'],['6:30','Rosecoloredworld'],['7:30','Senses'],['8:30','Holy Wars'],['9:30','Maylene and the Sons of Disaster']]
  },
- sun:{}
+ sun:{
+  'Vans':[['11:39','Chlorine'],['12:40','Set Your Goals'],['1:52','Motion City Soundtrack'],['3:22','Hot Mulligan'],['4:58','New Found Glory'],['6:49','Jimmy Eat World'],['8:50','The Used']],
+  'Off the Wall':[['12:07','Sace6'],['1:15','Hot Chelle Rae'],['2:31','Bayside'],['4:10','Thrice'],['5:50','Taking Back Sunday'],['7:47','Dirty Heads']],
+  'Ghost':[['12:02','Free Throw'],['1:06','The Paradox'],['2:10','Glassjaw'],['3:21','The Starting Line'],['4:38','Citizen'],['5:47','Fit for a King'],['7:24','The Academy Is...'],['8:35','Atmosphere']],
+  'Beatbox':[['11:50','Games We Play'],['12:44','Vana'],['1:38','From First to Last'],['2:47','Gym Class Heroes'],['4:24','MxPx'],['5:20','Reel Big Fish'],['6:31','All That Remains'],['7:53','Joyce Manor'],['9:17','Insane Clown Posse']],
+  'Verizon':[['11:30','Vienna Vienna'],['12:30','Stand Atlantic'],['1:30','Beauty School Dropout'],['2:30','Deathbyromy'],['3:30','Phantom Planet'],['4:30','Pain of Truth'],['5:30','Gideon'],['6:30','Hot Milk'],['7:40','Iann Dior'],['8:50','Set It Off']],
+  'Club Wyndham':[['12:00','Nursing'],['1:00','Daisy Grenade'],['2:00','The Early November'],['3:00','Counterparts'],['4:00','Big Ass Truck I.E.'],['5:00','Emery'],['6:00','Madball'],['7:05','Scary Kids Scaring Kids'],['8:15','Holywatr']],
+  'Chad Gilbert':[['12:30','NIIS'],['1:30','Wolves of Glendale'],['2:30','Teen Mortgage'],['3:30','Millington'],['4:30','Fox Lake'],['5:30','Doobie'],['6:30','Lakeview'],['7:30','Upon a Burning Body'],['8:30','Sitting on Saturn']],
+  'Larceny Bourbon':[['12:00','Makari'],['1:00','Gang!'],['2:00','Elijah'],['3:00','Super Sometimes'],['4:00','Just Surrender'],['5:00','Kennyhoopla'],['6:00','Drop Dead, Gorgeous'],['7:00','Ben Quad'],['8:00','Capstan']]
+ }
 };
 function tmin(t){var pmf=/p$/.test(t),p=t.replace(/[ap]$/,'').split(':'),h=+p[0];if(h<10||(h===10&&pmf))h+=12;return h*60+(+p[1])}
 var SCHEDULE=[];
@@ -292,7 +301,7 @@ var STAR='★︎';
 var CHECK='<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
 var VIEWS=['timeline','stages','my-day'];
-var state={editing:null,day:DAYS[0],view:'timeline',filter:'all',q:'',stage:'now',sim:14*60+30,live:!DEMO};
+var state={editing:null,day:DAYS[DAYS.length-1],view:'timeline',filter:'all',q:'',stage:'now',sim:14*60+30,live:!DEMO};
 var KEY='warped-going-'+SCHEDULE_ID,going=new Set();
 try{going=new Set(JSON.parse(localStorage.getItem(KEY)||'[]'))}catch(e){}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(Array.from(going)))}catch(e){}}
